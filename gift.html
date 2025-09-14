@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hadiah untuk Naura 🎁 — Tahap 2 (Fix)</title>
+  <title>Hadiah untuk Naura 🎁 — Patched</title>
   <meta name="theme-color" content="#f6c2d1" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@400;600;700&display=swap">
@@ -58,9 +58,6 @@
     #confetti{position:fixed;inset:0;z-index:10;pointer-events:none}
 
     .actions{display:flex;gap:10px;justify-content:center;margin-top:8px}
-  .stage{position:relative}
-    /* make sure reveal overlays and is visible */
-    #reveal{position:relative; z-index:5}
   </style>
 </head>
 <body>
@@ -73,7 +70,7 @@
       </header>
 
       <!-- GIFT BOX -->
-      <div class="gift" id="gift" role="button" aria-label="Buka hadiah" onclick="openGift(event)">
+      <div class="gift" id="gift" role="button" aria-label="Buka hadiah" onclick="openGift()">
         <div class="bow">
           <span class="loop left"></span>
           <span class="loop right"></span>
@@ -82,144 +79,133 @@
         <div class="box"></div>
       </div>
 
-      <!-- REVEAL AREA (NO IMAGE, TEXT CODE ONLY) -->
+      <!-- REVEAL AREA (TEXT CODE ONLY) -->
       <div id="reveal" class="reveal" aria-live="polite">
         <div class="voucher">
           <p class="heading">Voucher Shopee untuk <strong id="toName">Naura</strong> ✨</p>
-          <div class="code"><kbd id="codeText">HBD-NAURA-2025</kbd><button class="btn ghost" id="copyBtn">Salin Kode</button></div>
+          <div class="code">
+            <kbd id="codeText">cobasalinini</kbd>
+            <button class="btn ghost" id="copyBtn" type="button" onclick="copyCode()">Salin Kode</button>
+          </div>
           <div class="actions">
             <a class="btn primary" id="useBtn" href="https://shopee.co.id/" target="_blank" rel="noopener">Pakai di Shopee</a>
             <a class="btn ghost" href="./lilin.html">Tiup Lilin 🎂</a>
           </div>
         </div>
       </div>
-
     </section>
   </main>
 
-  <!-- optional sfx (tidak wajib ada) -->
+  <!-- optional sfx -->
   <audio id="popSfx">
     <source src="./audio/pop.mp3" type="audio/mpeg">
   </audio>
 
   <script>
     // ====== CONFIG ======
-    const CONFIG = {
+    var CONFIG = {
       crushName: 'Naura',
-      code: 'HBD-NAURA-2025', // ganti bebas
-      shopeeLink: 'https://shopee.co.id/', // kalau punya deep-link voucher, taruh di sini
-      confettiOnOpen: 420 // lebih banyak biar berasa "meledak"
+      code: 'cobasalinini',
+      shopeeLink: 'https://shopee.co.id/',
+      confettiOnOpen: 420
     };
 
-    // Helper
-    const $ = s => document.querySelector(s);
+    function $(sel){ return document.querySelector(sel); }
 
     // ===== Confetti (simple canvas) =====
-    const canvas = document.getElementById('confetti');
-    const ctx = canvas.getContext('2d');
-    let confetti = [];
+    var canvas = document.getElementById('confetti');
+    var ctx = canvas.getContext('2d');
+    var confetti = [];
     function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
     function make(n){
-      const colors = ['#ffffff','#fde2e7','#ffd3e1','#ffe6a7','#b8e3ff','#d4f8c4'];
-      for(let i=0;i<n;i++){
+      var colors = ['#ffffff','#fde2e7','#ffd3e1','#ffe6a7','#b8e3ff','#d4f8c4'];
+      for(var i=0;i<n;i++){
         confetti.push({x: Math.random()*canvas.width, y: -10, r: Math.random()*5+2, w: Math.random()*8+4, h: Math.random()*5+3, s: Math.random()*2+1, a: Math.random()*Math.PI, v: Math.random()*2+1, c: colors[(Math.random()*colors.length)|0]});
       }
     }
     function draw(){
       ctx.clearRect(0,0,canvas.width,canvas.height);
-      confetti.forEach(p=>{ p.y+=p.v; p.x += Math.sin(p.a+=0.02)*0.9; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=p.c; if (Math.random()>.5){ ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);} else { ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill(); } ctx.restore(); });
-      confetti = confetti.filter(p=>p.y < canvas.height+20);
+      confetti.forEach(function(p){ p.y+=p.v; p.x += Math.sin(p.a+=0.02)*0.9; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=p.c; if (Math.random()>.5){ ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);} else { ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill(); } ctx.restore(); });
+      confetti = confetti.filter(function(p){ return p.y < canvas.height+20; });
       requestAnimationFrame(draw);
     }
+    function burst(n){ make(n); make(Math.floor(n*0.35)); }
 
-    function burst(n){ make(n); make(n*0.35); /* double burst for stronger effect */ }
+    // ===== Copy Code (robust with fallback) =====
+    function copyCode(){
+      var textEl = document.getElementById('codeText');
+      var btn = document.getElementById('copyBtn');
+      var text = (textEl && (textEl.innerText || textEl.textContent)) || '';
 
-    // ===== Init after DOM ready =====
-    document.addEventListener('DOMContentLoaded', ()=>{
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(setCopied, fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+
+      function fallbackCopy(){
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly','');
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch(e){ ok = false; }
+        document.body.removeChild(ta);
+        if (ok) setCopied(); else alert('Gagal menyalin. Salin manual: ' + text);
+      }
+
+      function setCopied(){
+        if (!btn) return;
+        var old = btn.textContent;
+        btn.textContent = 'Tersalin!';
+        btn.disabled = true;
+        setTimeout(function(){ btn.textContent = old; btn.disabled = false; }, 1600);
+      }
+    }
+    window.copyCode = copyCode; // expose globally
+
+    // ===== Gift open / reveal =====
+    function openGift(){
+      var gift = $('#gift');
+      if (!gift || gift.classList.contains('open')) return;
+      gift.classList.add('open');
+      var sfx = document.getElementById('popSfx');
+      if (sfx && sfx.play) { try { sfx.play(); } catch(e){} }
+      burst(CONFIG.confettiOnOpen);
+      gift.classList.add('explode');
+    }
+    window.openGift = openGift; // expose globally
+
+    function bindRevealOnLidFlip(){
+      var lid = document.querySelector('.lid');
+      if(!lid) return;
+      lid.addEventListener('animationend', function(ev){
+        if(ev.animationName === 'flip'){
+          var reveal = $('#reveal');
+          reveal.classList.add('show');
+          reveal.scrollIntoView({behavior:'smooth', block:'center'});
+          setTimeout(function(){ var g = $('#gift'); if(g) g.style.visibility='hidden'; }, 200);
+        }
+      });
+    }
+
+    function init(){
       resize();
       requestAnimationFrame(draw);
-
-      // Fill dynamic text
       $('#name').textContent = CONFIG.crushName;
       $('#toName').textContent = CONFIG.crushName;
       $('#codeText').textContent = CONFIG.code;
       $('#useBtn').href = CONFIG.shopeeLink;
-
-      const gift = $('#gift');
-      const reveal = $('#reveal');
-
-      gift.addEventListener('click', async ()=>{
-        if (gift.classList.contains('open')) return;
-        gift.classList.add('open');
-        try{ await $('#popSfx')?.play(); }catch(e){}
-        burst(CONFIG.confettiOnOpen);
-        gift.classList.add('explode');
-      });
-
-      // When lid finished flipping, show the reveal (more reliable than timeout)
-      const lid = document.querySelector('.lid');
-      lid.addEventListener('animationend', (ev)=>{
-        if(ev.animationName === 'flip'){
-          const reveal = $('#reveal');
-          reveal.classList.add('show');
-          reveal.scrollIntoView({behavior:'smooth', block:'center'});
-          // hide gift after reveal to avoid layout jump
-          setTimeout(()=>{ gift.style.visibility='hidden'; }, 150);
-        }
-      }, { once:false });
-        try{ await $('#popSfx')?.play(); }catch(e){}
-        // big confetti burst
-        burst(CONFIG.confettiOnOpen);
-        // explode effect then hide gift
-        gift.classList.add('explode');
-        setTimeout(()=>{ gift.style.visibility='hidden'; }, 650);
-        // show voucher
-        setTimeout(()=>{
-          reveal.classList.add('show');
-          reveal.scrollIntoView({behavior:'smooth', block:'center'});
-        }, 520);
-      });
-
-      // copy handler
-      $('#copyBtn').addEventListener('click', async ()=>{
-        const text = CONFIG.code;
-        try{ await navigator.clipboard.writeText(text); $('#copyBtn').textContent = 'Tersalin!'; setTimeout(()=>$('#copyBtn').textContent='Salin Kode', 1600);}catch(e){ alert('Gagal menyalin. Salin manual ya: '+text); }
-      });
-
-      // keep canvas sized
+      $('#gift').addEventListener('click', openGift);
+      bindRevealOnLidFlip();
       addEventListener('resize', resize);
-    });
-  </script>
-  <script>
-    // --- Safe rebind (in case previous init didn't run) ---
-    function _safeInitGift(){
-      // define openGift if missing
-      if (typeof window.openGift !== 'function'){
-        window.openGift = async function(){
-          var gift = document.getElementById('gift'); if(!gift) return;
-          if (gift.classList.contains('open')) return;
-          gift.classList.add('open');
-          try{ var sfx = document.getElementById('popSfx'); if(sfx) sfx.play(); }catch(e){}
-          if (typeof burst === 'function') burst(420);
-          gift.classList.add('explode');
-        };
-      }
-      // ensure listener added
-      var giftEl = document.getElementById('gift');
-      if (giftEl) giftEl.addEventListener('click', window.openGift);
-      // ensure lid animation triggers reveal
-      var lid = document.querySelector('.lid');
-      if (lid) lid.addEventListener('animationend', function(ev){
-        if (ev.animationName === 'flip'){
-          var reveal = document.getElementById('reveal');
-          if (reveal){ reveal.classList.add('show'); reveal.scrollIntoView({behavior:'smooth', block:'center'}); }
-          setTimeout(function(){ var g=document.getElementById('gift'); if(g) g.style.visibility='hidden'; }, 200);
-        }
-      });
     }
-    if (document.readyState === 'loading'){
-      document.addEventListener('DOMContentLoaded', _safeInitGift);
-    } else { _safeInitGift(); }
+    if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
   </script>
 </body>
 </html>

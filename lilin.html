@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Tiup Lilin 🎂 — Final</title>
+  <meta name="theme-color" content="#f6c2d1" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;600;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{ --pink:#f6c2d1; --ink:#171717; --bg1:#1a0f14; --bg2:#0b0910; --white:#fff }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--white);
+         background: radial-gradient(120% 120% at 50% 10%, var(--bg1), var(--bg2) 60%, #09090b); overflow:hidden}
+
+    .wrap{min-height:100dvh; display:grid; place-items:center; padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left))}
+
+    .stage{display:grid; gap:18px; place-items:center; text-align:center; position:relative; z-index:2}
+    h1{font-family:"Dancing Script",cursive; font-size: clamp(30px,6.2vw,56px); margin:.2rem 0 0}
+    p.lead{opacity:.9; margin:0}
+
+    /* Cake + candle (responsive with aspect-ratio) */
+    .cake{ position:relative; width:clamp(260px, 65vw, 380px); aspect-ratio: 4 / 3; }
+    .plate{ position:absolute; z-index:1; left:50%; transform:translateX(-50%); bottom:5%; width:90%; height:8%; background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.08)); border-radius:20px }
+    .body{ position:absolute; z-index:2; left:50%; transform:translateX(-50%); bottom:12%; width:78%; height:48%; border-radius:16px; background:linear-gradient(180deg,#ffb3cc,#ff8db8); box-shadow:0 18px 50px rgba(246,194,209,.25) }
+    .icing{ position:absolute; z-index:3; left:50%; transform:translateX(-50%); bottom:58%; width:82%; height:10%; border-radius:18px; background:linear-gradient(180deg,#ffe3ee,#ffd0e2) }
+    .candle{ position:absolute; z-index:4; left:50%; transform:translateX(-50%); bottom:60%; width:5%; height:28%; background:repeating-linear-gradient(180deg, #ffd2de 0 14px, #ff98bb 14px 28px); border-radius:8px }
+    .wick{ position:absolute; z-index:5; left:50%; transform:translateX(-50%); bottom:80.5%; width:2px; height:4%; background:#2b2b2b; border-radius:2px }
+
+    /* Flame */
+    .flame{ position:absolute; z-index:6; left:50%; bottom:84%; transform:translateX(-50%); width:7%; height:11%; filter:blur(.2px);
+            background: radial-gradient(ellipse at center, #fff6a9 10%, #ffd66b 40%, rgba(255,140,0,.9) 70%, rgba(255,140,0,0) 72%);
+            border-radius:50%; animation: flicker 1s ease-in-out infinite }
+    .flame:before{ content:""; position:absolute; inset:15% 18% 28%; border-radius:50%; background: radial-gradient(#fff, rgba(255,255,255,.0) 60%) }
+    @keyframes flicker{ 0%,100%{ transform: translateX(-50%) scaleY(1) } 50%{ transform: translateX(calc(-50% + 1px)) scaleY(1.08) } }
+
+    /* Blown state */
+    .is-blown .flame{ animation: none; transform: translateX(-50%) scale(.2); opacity:0; transition: opacity .4s ease, transform .4s ease }
+
+    /* Smoke puffs */
+    .smoke{ position:absolute; z-index:7; left:50%; bottom:84%; width:10px; height:10px; border-radius:50%; background: radial-gradient(rgba(255,255,255,.45), rgba(255,255,255,.02)); filter:blur(1px); pointer-events:none; opacity:.85; animation: smokeUp 1.8s ease-out forwards }
+    @keyframes smokeUp{ to{ transform: translate(calc(-50% + var(--dx,0px)), -140px); opacity:0 } }
+
+    /* Buttons */
+    .actions{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:4px }
+    .btn{ appearance:none; border:none; border-radius:14px; padding:.9rem 1.2rem; font-weight:700; cursor:pointer; color:#4b0a1b; background:var(--pink); box-shadow:0 10px 30px rgba(246,194,209,.35) }
+    .btn.ghost{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.35) }
+    .small{ font-size:.9rem; padding:.6rem .9rem; border-radius:12px }
+
+    /* Confetti canvas */
+    #confetti{ position:fixed; inset:0; z-index:10; pointer-events:none }
+
+    /* Message after blow */
+    .msg{ opacity:0; transform:translateY(8px); transition:opacity .45s ease, transform .45s ease; margin-top:4px }
+    .msg.show{ opacity:1; transform:translateY(0) }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .flame{ animation:none }
+      .smoke{ animation:none; display:none }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <main class="wrap">
+    <section class="stage">
+      <header>
+        <h1>Tiup Lilinnya 🎂</h1>
+        <p class="lead">Klik tombol untuk meniup.</p>
+      </header>
+
+      <!-- Cake scene -->
+      <div class="cake" aria-label="Kue ulang tahun">
+        <div class="plate"></div>
+        <div class="body"></div>
+        <div class="icing"></div>
+        <div class="candle"></div>
+        <div class="wick"></div>
+        <div class="flame" id="flame" aria-hidden="false"></div>
+        <div id="smokeContainer" aria-hidden="true"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="blowBtn">Tiup Lilin 🎂</button>
+        <button class="btn ghost" id="relightBtn" style="display:none">Nyalakan Lagi 🔥</button>
+        <a class="btn ghost small" href="./index.html">Kembali ke Awal</a>
+      </div>
+
+      <h2 class="msg" id="wish" aria-live="polite">Make a wish, <span id="name">Naura</span> ✨</h2>
+    </section>
+  </main>
+
+  <!-- Optional sound effect (akan dimainkan jika file ada) -->
+  <audio id="whoosh">
+    <source src="./audio/whoosh.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const CONFIG = { crushName: 'Naura', confetti: 360 };
+    $('#name').textContent = CONFIG.crushName;
+
+    let blown = false;
+
+    // Confetti minimal
+    const cvs = document.getElementById('confetti');
+    const ctx = cvs.getContext('2d');
+    let parts = [];
+    function size(){ cvs.width = innerWidth; cvs.height = innerHeight }
+    function make(n){
+      const colors = ['#ffffff','#fde2e7','#ffd3e1','#ffe6a7','#b8e3ff','#d4f8c4'];
+      for(let i=0;i<n;i++){
+        parts.push({ x:Math.random()*cvs.width, y:-10, r:Math.random()*5+2, w:Math.random()*8+4, h:Math.random()*5+3, s:Math.random()*2+1, a:Math.random()*Math.PI, v:Math.random()*2+1, c:colors[(Math.random()*colors.length)|0], shape: Math.random()>.5?1:0 });
+      }
+    }
+    function loop(){
+      ctx.clearRect(0,0,cvs.width,cvs.height);
+      parts.forEach(p=>{ p.y+=p.v; p.x += Math.sin(p.a+=0.02)*0.9; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=p.c; if(p.shape===0){ ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);} else { ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill(); } ctx.restore(); });
+      parts = parts.filter(p=>p.y < cvs.height+20);
+      requestAnimationFrame(loop);
+    }
+    addEventListener('resize', size); size(); requestAnimationFrame(loop);
+
+    function spawnSmoke(count=18){
+      const box = $('#smokeContainer');
+      for(let i=0;i<count;i++){
+        const s = document.createElement('span');
+        s.className = 'smoke';
+        s.style.setProperty('--dx', (Math.random()*60-30)+'px');
+        s.style.animationDelay = (Math.random()*0.6)+'s';
+        s.style.opacity = (0.5 + Math.random()*0.5).toFixed(2);
+        box.appendChild(s);
+        setTimeout(()=> s.remove(), 2200);
+      }
+    }
+
+    async function blow(){
+      if (blown) return;
+      blown = true;
+      document.body.classList.add('is-blown');
+      spawnSmoke(24);
+      make(CONFIG.confetti);
+      try{ await $('#whoosh')?.play(); }catch(e){}
+      const msg = $('#wish');
+      msg.classList.add('show');
+      msg.scrollIntoView({ behavior:'smooth', block:'center' });
+      $('#relightBtn').style.display = 'inline-block';
+      $('#blowBtn').style.display = 'none';
+    }
+
+    function relight(){
+      blown = false;
+      document.body.classList.remove('is-blown');
+      $('#wish').classList.remove('show');
+      $('#relightBtn').style.display = 'none';
+      $('#blowBtn').style.display = 'inline-block';
+    }
+
+    // Buttons
+    $('#blowBtn').addEventListener('click', blow);
+    $('#relightBtn').addEventListener('click', relight);
+  </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ucapan untuk Naura 🌸 — Tahap 1</title>
+  <meta name="description" content="Ucapan ulang tahun dengan efek ketik" />
+  <meta name="theme-color" content="#f6c2d1" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@400;600;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <header class="hdr">
+        <h1 class="title">Untuk <span id="name">Naura</span> 🌸</h1>
+        <p class="sub" id="date"></p>
+      </header>
+      <article class="letter" aria-live="polite">
+        <span id="typer" class="typer"></span><span class="caret" id="caret"></span>
+      </article>
+      <div class="actions">
+        <button id="nextBtn" class="btn primary" disabled>Lanjut ➜</button>
+      </div>
+      <!-- light sparkles -->
+      <div id="fx" aria-hidden="true"></div>
+    </section>
+  </main>
+
+  <script>
+    // ====== CONFIG ======
+    const CONFIG = {
+      crushName: 'Naura',
+      // bebas edit teks berikut (baris dipisah dengan string)
+      lines: [
+        'Hai Nau, Selamat Ulang Tahun!! 🌸 ',
+        'Semoga Naura Panjang Umur, Sehat Selalu, Dilancarin rezeki dan lain2 wkwkwk. ',
+        'Aku tahu ini agak absurd random ngucapin kek ini, tapi yah aku harap kau suka. Dan… aku ada hadiahh!!! sebenrny aku bingung, aku pengen kasih hampers jilbab sm dress yang pasti cocok bangedd sm naura(udah kubayangi, perpek, cocok niann) tapi kek mn aku dtw alamat spesifik naura gek kakak kurir ny nyasar dk ketemu rumah naura, terus dio kesel marah, terus dipake ny jilbab atau dress itu di liatiny ke aku terus aku terpesona sm kk itu gek, wkwk apalahhh. anyway jadi setelah aku lalukan riset mendalam dng pakar dari harvard, mereka bilang kasih voucher shopee saja!!, karena 90% cewe indo pake shopee jadi bisa beli dress atau jilbab ny sendiri, dan aku pikir iya jugak (btw aku ngarang 90% itu tapi risetny tidak!!), yowes jadi nih vouchernya, jangan lihat dari nominal, sebagian orang itu kecil sebagian yang lain itu cukup, yang penting itu ikhlas dan berkah.... tolong diterima yaaa. 🎁'
+      ],
+      typing: { min: 18, max: 36, pauseBetweenLines: 420 }, // ms per karakter (acak di rentang)
+      nextUrl: './gift.html' // untuk Tahap 2 (nanti kita buat). Sementara biarin.
+    };
+
+    // ====== HELPERS ======
+    const $ = sel => document.querySelector(sel);
+    const rand = (min,max)=>Math.random()*(max-min)+min;
+    const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+    // ====== INIT ======
+    const nameEl = $('#name');
+    nameEl.textContent = CONFIG.crushName;
+    $('#date').textContent = new Date().toLocaleDateString('id-ID', { year:'numeric', month:'long', day:'numeric' });
+
+    const typer = $('#typer');
+    const caret = $('#caret');
+    const nextBtn = $('#nextBtn');
+
+    async function typeLetter(){
+      for (let i=0;i<CONFIG.lines.length;i++){
+        await typeLine(CONFIG.lines[i]);
+        if (i < CONFIG.lines.length-1){
+          typer.innerHTML += '<br><br>';
+          await sleep(CONFIG.typing.pauseBetweenLines);
+        }
+      }
+      // selesai ngetik
+      caret.style.opacity = .35; // biar lebih halus
+      nextBtn.disabled = false;
+    }
+
+    async function typeLine(text){
+      for (let i=0; i<text.length; i++){
+        typer.textContent += text[i];
+        await sleep(rand(CONFIG.typing.min, CONFIG.typing.max));
+      }
+    }
+
+    // subtle sparkles around the card
+    function sparkles(){
+      const fx = $('#fx');
+      for (let i=0; i<18; i++){
+        const s = document.createElement('span');
+        s.className = 'sparkle';
+        const size = rand(2,5);
+        s.style.width = size+'px';
+        s.style.height = size+'px';
+        s.style.left = rand(6, 96)+'%';
+        s.style.top = rand(82, 96)+'%';
+        s.style.animationDuration = rand(3,7)+'s';
+        s.style.animationDelay = rand(0,3)+'s';
+        fx.appendChild(s);
+      }
+    }
+
+    nextBtn.addEventListener('click', ()=>{
+      // sementara, arahkan ke nextUrl kalau sudah ada (Tahap 2). Kalau belum, tetap di sini.
+      if (CONFIG.nextUrl){ window.location.href = CONFIG.nextUrl; }
+    });
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      sparkles();
+      typeLetter();
+    });
+  </script>
+</body>
+</html>

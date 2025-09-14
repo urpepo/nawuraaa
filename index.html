@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Untuk Naura 🌸</title>
+  <meta name="description" content="Surprise kecil untuk Naura 🌸" />
+  <meta name="theme-color" content="#f6c2d1" />
+  <meta property="og:title" content="Untuk Naura 🌸" />
+  <meta property="og:description" content="Buka hadiahnya ya 🎁" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="./images/preview.jpg" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@400;600;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --pink:#f6c2d1; --pink-dark:#eaa4b9; --ink:#171717; --white:#fff;
+      --glass: rgba(255,255,255,.12);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Poppins,system-ui,Segoe UI,Arial,sans-serif;color:var(--white);background:#0b0b0b;overflow-x:hidden}
+
+    /* BG video full-bleed */
+    #bgVideo{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.9) saturate(1.05);z-index:0}
+    .overlay{position:fixed;inset:0;background:radial-gradient(120% 120% at 50% 10%, rgba(0,0,0,.1), rgba(0,0,0,.55)),
+                                   linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.6));z-index:1;pointer-events:none}
+
+    /* Opening screen */
+    .center{position:relative;z-index:2;min-height:100svh;display:grid;place-items:center;text-align:center;padding:24px}
+    .card{display:flex;flex-direction:column;align-items:center;gap:18px;background:backdrop-filter:blur(8px);}
+    .title{font-family:"Dancing Script",cursive;font-size:clamp(34px,7vw,76px);margin:0;text-shadow:0 6px 24px rgba(0,0,0,.35)}
+    .subtitle{opacity:.9;margin:0 0 6px;font-size:clamp(14px,2.7vw,18px)}
+
+    /* Typewriter */
+    .typer{display:inline-block;border-right:2px solid rgba(255,255,255,.75);padding-right:4px;white-space:nowrap;overflow:hidden}
+    .blink{animation:blink 1s step-end infinite}
+    @keyframes blink{50%{border-color:transparent}}
+
+    /* Button */
+    .btn{appearance:none;border:none;border-radius:14px;padding:.95rem 1.25rem;background:var(--pink);color:#4b0a1b;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(246,194,209,.35);transform:translateY(0);transition:transform .15s ease, filter .2s ease}
+    .btn:hover{transform:translateY(-2px)}
+    .btn:active{transform:translateY(0)}
+    .btn[disabled]{opacity:.6;filter:grayscale(.2);pointer-events:none}
+
+    /* Floating petals */
+    .petal{position:fixed;top:-10vh;will-change:transform;pointer-events:none;z-index:2;}
+    @keyframes fall{to{transform:translate(var(--x,0), 110vh) rotate(1turn)}}
+
+    /* Fade out when opening gift */
+    .fade-out{opacity:0;transition:opacity .9s ease}
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion:reduce){
+      #bgVideo{display:none}
+      .overlay{background:linear-gradient(180deg,#f2bfd0,#f7dbe4)}
+      .petal{display:none}
+    }
+
+    /* Footer credit (tiny) */
+    .foot{position:fixed;inset:auto 0 12px 0;text-align:center;z-index:2;font-size:12px;opacity:.7}
+  </style>
+</head>
+<body>
+
+  <!-- Background Video (provide your own file) -->
+  <video id="bgVideo" autoplay muted loop playsinline poster="./images/poster.jpg">
+    <source src="./videos/padang-bunga.mp4" type="video/mp4" />
+  </video>
+  <div class="overlay" aria-hidden="true"></div>
+
+  <!-- Confetti canvas -->
+  <canvas id="confetti" style="position:fixed;inset:0;z-index:3;pointer-events:none"></canvas>
+
+  <!-- Main content -->
+  <main class="center" id="screen">
+    <div class="card">
+      <h1 class="title" id="title">Untuk <span id="name">Naura</span> 🌸</h1>
+      <p class="subtitle"><span class="typer blink" id="typer"></span></p>
+      <button class="btn" id="openBtn" disabled aria-label="Buka hadiah">Buka Hadiah 🎁</button>
+    </div>
+  </main>
+
+  <!-- Decorative petals (images) -->
+  <img src="./images/plumeria1.png" class="petal" alt="" style="left:12%; width:40px; animation: fall 9s linear infinite; animation-delay:.2s">
+
+  <!-- Audio (will play on click) -->
+  <audio id="bgMusic">
+    <source src="./audio/bg-music.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // ======== CONFIG (easy to edit) ========
+    const CONFIG = {
+      crushName: 'Naura', // ganti nama di sini
+      openingLines: [
+        'Selamat Ulang Tahun Nauraaa 🎂',
+        'Semoga harimu manis seperti kue ulang tahun 🍰',
+        'Ada sesuatu buat kamu…'
+      ],
+      nextPage: './ucapan.html',
+      petals: {
+        countMobile: 10,
+        countDesktop: 24,
+        sizeMin: 18,
+        sizeMax: 56,
+        durationMin: 7,
+        durationMax: 14
+      },
+      confettiBurst: 300, // partikel konfeti saat tombol diklik
+      redirectDelayMs: 1100
+    };
+
+    // ======== TYPEWRITER ========
+    const typerEl = document.getElementById('typer');
+    const openBtn = document.getElementById('openBtn');
+    const nameEl = document.getElementById('name');
+    nameEl.textContent = CONFIG.crushName;
+
+    async function typeLines(lines){
+      for (const line of lines){
+        await typeText(line);
+        await sleep(500);
+        clearTyper();
+      }
+      // Last line stays
+      await typeText(lines[lines.length-1]);
+      openBtn.disabled = false; // enable button after typing
+    }
+
+    function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+    async function typeText(text){
+      typerEl.classList.add('blink');
+      typerEl.textContent = '';
+      for (let i=0;i<text.length;i++){
+        typerEl.textContent += text[i];
+        await sleep(40 + Math.random()*40); // variable speed
+      }
+      typerEl.classList.remove('blink');
+    }
+
+    function clearTyper(){typerEl.textContent='';}
+
+    // ======== PETALS (floating images) ========
+    function spawnPetals(){
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const total = matchMedia('(max-width: 520px)').matches ? CONFIG.petals.countMobile : CONFIG.petals.countDesktop;
+      for (let i=0;i<total;i++){
+        const el = document.createElement('img');
+        el.src = './images/plumeria1.png';
+        el.alt = '';
+        el.className = 'petal';
+        const size = rand(CONFIG.petals.sizeMin, CONFIG.petals.sizeMax);
+        el.style.left = rand(0,100)+'%';
+        el.style.width = size+'px';
+        el.style.filter = size < 28 ? 'blur(.4px)' : 'none';
+        const dur = rand(CONFIG.petals.durationMin, CONFIG.petals.durationMax);
+        el.style.animation = `fall ${dur}s linear infinite`;
+        el.style.animationDelay = rand(0,5)+'s';
+        el.style.zIndex = Math.random()<.5?1:2;
+        document.body.appendChild(el);
+      }
+    }
+
+    function rand(min,max){return Math.random()*(max-min)+min}
+
+    // ======== CONFETTI (minimal, canvas-based) ========
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    let confetti = [];
+    function resizeCanvas(){canvas.width = innerWidth; canvas.height = innerHeight}
+    addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    function makeConfetti(n){
+      const colors = ['#ffffff','#fde2e7','#ffd3e1','#ffe6a7','#b8e3ff','#d4f8c4'];
+      for(let i=0;i<n;i++){
+        confetti.push({
+          x: Math.random()*canvas.width,
+          y: -10,
+          r: Math.random()*5+2,
+          w: Math.random()*8+4,
+          h: Math.random()*5+3,
+          s: Math.random()*2+1,
+          a: Math.random()*Math.PI,
+          v: Math.random()*2+1,
+          c: colors[(Math.random()*colors.length)|0]
+        });
+      }
+    }
+
+    function drawConfetti(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      confetti.forEach(p=>{
+        p.y += p.v; p.x += Math.sin(p.a+=0.02)*0.9;
+        ctx.save();
+        ctx.translate(p.x,p.y);
+        ctx.rotate(p.a);
+        ctx.fillStyle = p.c;
+        // mix rect & circle for variety
+        if (Math.random()>.5){ ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); }
+        else { ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill(); }
+        ctx.restore();
+      });
+      // drop out of bounds
+      confetti = confetti.filter(p=>p.y < canvas.height+20);
+      requestAnimationFrame(drawConfetti);
+    }
+    requestAnimationFrame(drawConfetti);
+
+    function burst(){ makeConfetti(CONFIG.confettiBurst); }
+
+    // ======== OPEN BUTTON ACTION ========
+    async function openGift(){
+      // play music if allowed
+      try{ await document.getElementById('bgMusic').play(); }catch(e){}
+      // confetti burst
+      burst();
+      // subtle fade
+      document.getElementById('screen').classList.add('fade-out');
+      setTimeout(()=>{ window.location.href = CONFIG.nextPage; }, CONFIG.redirectDelayMs);
+    }
+
+    // ======== INIT ========
+    document.addEventListener('DOMContentLoaded', ()=>{
+      typeLines(CONFIG.openingLines);
+      spawnPetals();
+      openBtn.addEventListener('click', openGift);
+    });
+  </script>
+</body>
+</html>
